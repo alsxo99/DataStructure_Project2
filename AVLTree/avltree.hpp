@@ -279,6 +279,7 @@ void AVLTree<T,U>::removeall(AVLNode<T,U>*& node) {
     if (node->right)
         removeall(node->right);
     
+    std::cout << "delete " << node->key << std::endl;
     delete node;
     return;
 }
