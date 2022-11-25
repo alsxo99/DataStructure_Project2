@@ -158,6 +158,8 @@ RBNode<T,U>* RBTree<T,U>::insert(RBNode<T,U>*& node, const T& key, const U& valu
         RBNode<T,U>* newNode = new RBNode<T,U>(key, value);
         if (root)
             newNode->color = 1;
+        else
+            newNode->color = 0;
         return newNode;
     }
 
