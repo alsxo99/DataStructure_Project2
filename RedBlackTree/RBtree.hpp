@@ -215,7 +215,6 @@ void RBTree<T,U>::removeall(RBNode<T,U>*& node) {
     if (node->right)
         removeall(node->right);
     
-    std::cout << "delete " << node->key << std::endl;
     delete node;
     return;
 }
@@ -447,5 +446,8 @@ void RBTree<T,U>::handle_double_black(RBNode<T,U>*& node) {
             node->parent->right = nullptr;
         else
             node->parent->left = nullptr;
+        delete node;
     }
+    
+    return;
 }
