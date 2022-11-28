@@ -431,7 +431,6 @@ RBNode<T,U>* RBTree<T,U>::remove_black_leaf(RBNode<T,U>*& node) {
             if (node->parent->color)
                 node->parent->color = 0;
             else {
-                // 이게 필요한지 모르겠다.
                 if (node->parent == root)
                     node->parent->color = 0;
                 else
