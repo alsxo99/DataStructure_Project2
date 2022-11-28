@@ -66,7 +66,7 @@ class RBTree {
         void fix_insert(RBNode<T,U>*& node);
         void fix_remove(RBNode<T,U>*& node);
         RBNode<T,U>* find_successor(RBNode<T,U>*& node);
-        void handle_double_black(RBNode<T,U>*& node);
+        RBNode<T,U>* remove_black_leaf(RBNode<T,U>*& node);
 };
 
 template<typename T, typename U>
@@ -102,7 +102,7 @@ RBNode<T,U>* RBTree<T,U>::rotate_left(RBNode<T,U>*& node){
     node->right = right_child->left;
     right_child->left = node;
 
-    //parent update?
+    //parent update
     if (node->right)
         node->right->parent = node;
 
@@ -276,13 +276,13 @@ void RBTree<T,U>::fix_insert(RBNode<T,U>*& node) {
             }
             // Case 3-2-2 : right-left, left-right
             else if (grand_parent->right == parent && parent->left == node) {
-                rotate_right(parent); // 확인 필요
+                rotate_right(parent); 
                 grand_parent->color = 1;
                 node->color = 0;
                 rotate_left(grand_parent);
             }
             else if (grand_parent->left == parent && parent->right == node) {
-                rotate_left(parent); // 확인 필요
+                rotate_left(parent); 
                 grand_parent->color = 1;
                 node->color = 0;
                 rotate_right(grand_parent);  
@@ -296,10 +296,21 @@ void RBTree<T,U>::fix_insert(RBNode<T,U>*& node) {
 template<typename T, typename U>
 void RBTree<T,U>::fix_remove(RBNode<T,U>*& node) {
 
+    if (node == root && !node->left && !node->right) {
+        root = nullptr;
+        delete node;
+    }
     // node가 leaf node(no child)이면 두 가지 경우가 있다.
     // node가 black leaf node일 경우. -> double black
-    if (!node->color && !node->left && !node->right)
-        handle_double_black(node);
+    else if (!node->color && !node->left && !node->right) {
+        node = remove_black_leaf(node);
+
+        if (node->parent->left == node)
+            node->parent->left = nullptr;
+        else
+            node->parent->right = nullptr;
+        delete node;
+    }
     // node가 red leaf node일 경우.
     else if (node->color && !node->left && !node->right) {
         if (node->parent->left == node)
@@ -351,7 +362,13 @@ void RBTree<T,U>::fix_remove(RBNode<T,U>*& node) {
         } else if (!successor->color && (!successor->left && !successor->right)) {
             node->key = successor->key;
             node->value = successor->value;
-            handle_double_black(successor);
+            successor = remove_black_leaf(successor);
+
+            if (successor->parent->left == successor)
+                successor->parent->left = nullptr;
+            else
+                successor->parent->right = nullptr;
+            delete successor;
         }
     }
 
@@ -370,7 +387,7 @@ RBNode<T,U>* RBTree<T,U>::find_successor(RBNode<T,U>*& node) {
 }
 
 template<typename T, typename U>
-void RBTree<T,U>::handle_double_black(RBNode<T,U>*& node) {
+RBNode<T,U>* RBTree<T,U>::remove_black_leaf(RBNode<T,U>*& node) {
 
     RBNode<T,U>* sibling = node->parent->left == node ? node->parent->right : node->parent->left;
 
@@ -382,16 +399,12 @@ void RBTree<T,U>::handle_double_black(RBNode<T,U>*& node) {
             sibling->right->color = 0;
             rotate_left(node->parent);
 
-            node->parent->left = nullptr;
-            delete node;
         } else if (sibling == node->parent->left && sibling->left && sibling->left->color) {
             sibling->color = node->parent->color;
             node->parent->color = 0;
             sibling->left = 0;
             rotate_right(node->parent);
 
-            node->parent->right = nullptr;
-            delete node;
         // case 2
         } else if (sibling == node->parent->right && sibling->left && sibling->left->color) {
             sibling->color = 1;
@@ -402,8 +415,6 @@ void RBTree<T,U>::handle_double_black(RBNode<T,U>*& node) {
             sibling->color = 0;
             rotate_left(node->parent);
 
-            node->parent->left = nullptr;
-            delete node;
         } else if (sibling == node->parent->left && sibling->right && sibling->right->color) {
             sibling->color = 1;
             sibling->right->color = 0;
@@ -413,15 +424,9 @@ void RBTree<T,U>::handle_double_black(RBNode<T,U>*& node) {
             sibling->color = 0;
             rotate_right(node->parent);
 
-            node->parent->right = nullptr;
-            delete node;
         // case 3
         } else {
             sibling->color = 1;
-            if (sibling == node->parent->left)
-                node->parent->right = nullptr;
-            else
-                node->parent->left = nullptr;
 
             if (node->parent->color)
                 node->parent->color = 0;
@@ -430,9 +435,8 @@ void RBTree<T,U>::handle_double_black(RBNode<T,U>*& node) {
                 if (node->parent == root)
                     node->parent->color = 0;
                 else
-                    handle_double_black(node->parent);
+                    remove_black_leaf(node->parent);
             }
-            delete node;
         }
     } else {
         // case 4
@@ -444,12 +448,7 @@ void RBTree<T,U>::handle_double_black(RBNode<T,U>*& node) {
         else
             rotate_right(node->parent);
 
-        if (sibling == node->parent->left)
-            node->parent->right = nullptr;
-        else
-            node->parent->left = nullptr;
-        delete node;
     }
     
-    return;
+    return node;
 }
