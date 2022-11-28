@@ -57,7 +57,7 @@ class AVLTree {
         int getBalance(AVLNode<T,U>*& node);
         AVLNode<T,U>* rotate_left(AVLNode<T,U>*& node);
         AVLNode<T,U>* rotate_right(AVLNode<T,U>*& node);
-        AVLNode<T,U>* min_value_node(AVLNode<T,U>*& node);
+        AVLNode<T,U>* successor(AVLNode<T,U>*& node);
 
         AVLNode<T,U>* insert(AVLNode<T,U>*& node, const T& key, const U& value);
         U search(AVLNode<T,U>*& node, const T& key);
@@ -130,7 +130,7 @@ AVLNode<T,U>* AVLTree<T,U>::rotate_right(AVLNode<T,U>*& node){
 }
 
 template<typename T, typename U>
-AVLNode<T,U>* AVLTree<T,U>::min_value_node(AVLNode<T,U>*& node) {
+AVLNode<T,U>* AVLTree<T,U>::successor(AVLNode<T,U>*& node) {
     
     AVLNode<T,U>* current = node;
 
@@ -225,14 +225,18 @@ AVLNode<T,U>* AVLTree<T,U>::remove(AVLNode<T,U>*& node, const T& key) {
                 node = nullptr;
             }
             // one child
-            else
+            else {
                 // copy contents, except address
-                *node = *temp;
-            
+                node->key = temp->key;
+                node->value = temp->value;
+                node->height = temp->height;
+                node->left = temp->left;
+                node->right = temp->right;
+            }
             delete temp;
         // node with two children
         } else {
-            AVLNode<T,U>* temp = min_value_node(node->right);
+            AVLNode<T,U>* temp = successor(node->right);
 
             node->key = temp->key;
             node->value = temp->value;
